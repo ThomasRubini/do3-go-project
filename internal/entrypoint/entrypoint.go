@@ -1,7 +1,11 @@
 package entrypoint
 
-import "fmt"
+import (
+	"goproject/internal/repl"
+	"os"
+)
 
 func Entrypoint() {
-	fmt.Println("Hello, World!")
+	ret := repl.StartRepl()
+	os.Exit(ret)
 }

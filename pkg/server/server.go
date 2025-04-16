@@ -43,21 +43,21 @@ func (s *Server) handleRequest(req Request) {
 	var resp Response
 
 	switch req.Type {
-	case "create_profile":
+	case ReqCreateProfile:
 		resp = s.handleCreateProfile(req)
-	case "get_profile":
+	case ReqGetProfile:
 		resp = s.handleGetProfile(req)
-	case "update_profile":
+	case ReqUpdateProfile:
 		resp = s.handleUpdateProfile(req)
-	case "add_meal":
+	case ReqAddMeal:
 		resp = s.handleAddMeal(req)
-	case "list_meals":
+	case ReqListMeals:
 		resp = s.handleListMeals(req)
-	case "search_food":
+	case ReqSearchFood:
 		resp = s.handleSearchFood(req)
-	case "add_food":
+	case ReqAddFood:
 		resp = s.handleAddFood(req)
-	case "get_report":
+	case ReqGetReport:
 		resp = s.handleGetReport(req)
 	default:
 		resp = Response{Error: fmt.Errorf("unknown request type: %s", req.Type)}

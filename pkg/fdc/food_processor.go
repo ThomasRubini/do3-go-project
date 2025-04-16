@@ -1,99 +1,123 @@
 package fdc
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"nutritionapp/pkg/models"
-	"sync"
 )
 
-// FoodProcessor handles food data retrieval and caching
 type FoodProcessor struct {
-	client *Client
-	cache  map[int]*models.Food
-	mu     sync.RWMutex
+	apiKey string
 }
 
 func NewFoodProcessor(apiKey string) *FoodProcessor {
-	return &FoodProcessor{
-		client: NewClient(apiKey),
-		cache:  make(map[int]*models.Food),
-	}
+	return &FoodProcessor{apiKey: apiKey}
 }
 
-// SearchFoods searches for foods and returns them in our app's format
 func (fp *FoodProcessor) SearchFoods(query string) ([]models.Food, error) {
-	resp, err := fp.client.SearchFoods(query, "Foundation,SR Legacy") // Filter to standard reference foods
+	baseURL := "https://api.nal.usda.gov/fdc/v1/foods/search"
+	params := url.Values{}
+	params.Add("api_key", fp.apiKey)
+	params.Add("query", query)
+	params.Add("pageSize", "10")
+	params.Add("dataType", "SR Legacy")
+
+	resp, err := http.Get(baseURL + "?" + params.Encode())
 	if err != nil {
-		return nil, fmt.Errorf("search failed: %v", err)
+		return nil, fmt.Errorf("failed to search foods: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Foods []struct {
+			FdcID         int    `json:"fdcId"`
+			Description   string `json:"description"`
+			FoodNutrients []struct {
+				NutrientNumber string  `json:"nutrientNumber"`
+				Value          float64 `json:"value"`
+			} `json:"foodNutrients"`
+		} `json:"foods"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %v", err)
 	}
 
 	var foods []models.Food
-	for _, item := range resp.Foods {
-		food := fp.convertFoodItem(item)
+	for _, f := range result.Foods {
+		food := models.Food{
+			ID:   fmt.Sprintf("fdc_%d", f.FdcID),
+			Name: f.Description,
+		}
+
+		for _, n := range f.FoodNutrients {
+			switch n.NutrientNumber {
+			case "208":
+				food.Calories = n.Value
+			case "203":
+				food.Proteins = n.Value
+			case "205":
+				food.Carbs = n.Value
+			case "204":
+				food.Fats = n.Value
+			case "291":
+				food.Fiber = n.Value
+			}
+		}
+
 		foods = append(foods, food)
-		
-		// Cache the food item
-		fp.mu.Lock()
-		fp.cache[item.FdcId] = &food
-		fp.mu.Unlock()
 	}
 
 	return foods, nil
 }
 
-// GetFoodDetails gets detailed food information by FDC ID
-func (fp *FoodProcessor) GetFoodDetails(fdcId int) (*models.Food, error) {
-	// Check cache first
-	fp.mu.RLock()
-	if food, exists := fp.cache[fdcId]; exists {
-		fp.mu.RUnlock()
-		return food, nil
-	}
-	fp.mu.RUnlock()
+func (fp *FoodProcessor) GetFoodDetails(fdcID string) (*models.Food, error) {
+	baseURL := "https://api.nal.usda.gov/fdc/v1/food"
+	params := url.Values{}
+	params.Add("api_key", fp.apiKey)
 
-	// If not in cache, fetch from API
-	item, err := fp.client.GetFoodDetails(fdcId)
+	// Extract numeric ID from string (e.g., "fdc_123" -> "123")
+	fdcNumericID := fdcID[4:]
+	resp, err := http.Get(fmt.Sprintf("%s/%s?%s", baseURL, fdcNumericID, params.Encode()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get food details: %v", err)
 	}
+	defer resp.Body.Close()
 
-	food := fp.convertFoodItem(*item)
-	
-	// Cache the result
-	fp.mu.Lock()
-	fp.cache[fdcId] = &food
-	fp.mu.Unlock()
-
-	return &food, nil
-}
-
-// convertFoodItem converts FDC food item to our app's format
-func (fp *FoodProcessor) convertFoodItem(item FoodItem) models.Food {
-	food := models.Food{
-		ID:       fmt.Sprintf("fdc_%d", item.FdcId),
-		Name:     item.Description,
-		Calories: 0,
-		Proteins: 0,
-		Carbs:    0,
-		Fats:     0,
-		Fiber:    0,
+	var result struct {
+		FdcID         int    `json:"fdcId"`
+		Description   string `json:"description"`
+		FoodNutrients []struct {
+			NutrientNumber string  `json:"nutrientNumber"`
+			Value          float64 `json:"value"`
+		} `json:"foodNutrients"`
 	}
 
-	// Map nutrient values
-	for _, nutrient := range item.Nutrients {
-		switch nutrient.Name {
-		case "Energy":
-			food.Calories = nutrient.Amount
-		case "Protein":
-			food.Proteins = nutrient.Amount
-		case "Carbohydrate, by difference":
-			food.Carbs = nutrient.Amount
-		case "Total lipid (fat)":
-			food.Fats = nutrient.Amount
-		case "Fiber, total dietary":
-			food.Fiber = nutrient.Amount
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %v", err)
+	}
+
+	food := &models.Food{
+		ID:   fmt.Sprintf("fdc_%d", result.FdcID),
+		Name: result.Description,
+	}
+
+	for _, n := range result.FoodNutrients {
+		switch n.NutrientNumber {
+		case "208":
+			food.Calories = n.Value
+		case "203":
+			food.Proteins = n.Value
+		case "205":
+			food.Carbs = n.Value
+		case "204":
+			food.Fats = n.Value
+		case "291":
+			food.Fiber = n.Value
 		}
 	}
 
-	return food
+	return food, nil
 }

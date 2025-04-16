@@ -1,51 +1,45 @@
 package models
 
-import "time"
-
-// User represents a user profile with personal information
+// User represents a user profile
 type User struct {
-	FirstName    string
-	LastName     string
-	Age          int
-	Weight       float64 // in kg
-	Height       float64 // in cm
-	Gender       string
-	Goal         string  // e.g., "weight loss", "muscle gain", "maintenance"
-	ActivityLevel string // e.g., "sedentary", "moderate", "active", "very active"
-}
-
-// BodyComposition represents physical measurements at a point in time
-type BodyComposition struct {
-	Date      time.Time
+	FirstName string
+	LastName  string
+	Age       int
 	Weight    float64
-	BodyFat   float64 // percentage
-	BMI       float64
-	Timestamp time.Time
+	Height    float64
+	Gender    string
+	Goal      string
+	DailyLog  *DailyLog
 }
 
-// CalculateBMI calculates the Body Mass Index
+// CalculateBMI calculates the user's BMI
 func (u *User) CalculateBMI() float64 {
-	if u.Height <= 0 || u.Weight <= 0 {
-		return 0
-	}
 	heightInMeters := u.Height / 100
 	return u.Weight / (heightInMeters * heightInMeters)
 }
 
-// EstimateBodyFat estimates body fat percentage using BMI method
-// Note: This is a simple estimation, not as accurate as other methods
-func (u *User) EstimateBodyFat() float64 {
+// CalculateBodyFat estimates body fat percentage using BMI
+func (u *User) CalculateBodyFat() float64 {
 	bmi := u.CalculateBMI()
 	age := float64(u.Age)
-	
-	// Simple body fat estimation based on BMI
-	// This is a basic formula and should be replaced with more accurate methods
-	var bodyFat float64
+	genderFactor := 0.0
 	if u.Gender == "male" {
-		bodyFat = (1.20 * bmi) + (0.23 * age) - 16.2
-	} else if u.Gender == "female" {
-		bodyFat = (1.20 * bmi) + (0.23 * age) - 5.4
+		genderFactor = 1.0
 	}
-	
-	return bodyFat
+
+	// Using the Deurenberg formula
+	return (1.20 * bmi) + (0.23 * age) - (10.8 * genderFactor) - 5.4
+}
+
+func (u *User) EstimateBodyFat() float64 {
+	bmi := u.CalculateBMI()
+	if bmi <= 0 {
+		return 0
+	}
+
+	// Very rough estimation based on BMI
+	if u.Gender == "male" {
+		return (1.20 * bmi) + (0.23 * float64(u.Age)) - 16.2
+	}
+	return (1.20 * bmi) + (0.23 * float64(u.Age)) - 5.4
 }

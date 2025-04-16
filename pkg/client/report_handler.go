@@ -6,28 +6,16 @@ import (
 )
 
 func (c *Client) handleReport() {
-	respChannel := make(chan server.Response)
-	c.requests <- server.Request{
-		Type:   server.ReqGetReport,
-		Return: respChannel,
-	}
-
-	resp := <-respChannel
-	if resp.Error != nil {
-		fmt.Printf("Error: %s\n", resp.Error)
-		return
-	}
-
-	result, ok := resp.Data.(server.ReportResponse)
-	if !ok {
-		fmt.Println("Error: Invalid response data")
+	resp, err := makeRequestTyped[server.ReportResponse](c, server.ReqGetReport, nil)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
 		return
 	}
 
 	fmt.Println("\n=== Daily Nutritional Report ===")
-	fmt.Printf("Calories: %.0f kcal\n", result.Calories)
-	fmt.Printf("Proteins: %.1f g\n", result.Proteins)
-	fmt.Printf("Carbs: %.1f g\n", result.Carbs)
-	fmt.Printf("Fats: %.1f g\n", result.Fats)
-	fmt.Printf("Fiber: %.1f g\n", result.Fiber)
+	fmt.Printf("Calories: %.0f kcal\n", resp.Calories)
+	fmt.Printf("Proteins: %.1f g\n", resp.Proteins)
+	fmt.Printf("Carbs: %.1f g\n", resp.Carbs)
+	fmt.Printf("Fats: %.1f g\n", resp.Fats)
+	fmt.Printf("Fiber: %.1f g\n", resp.Fiber)
 }

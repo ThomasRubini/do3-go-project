@@ -47,14 +47,13 @@ func (c *Client) createProfile() {
 	fmt.Print("Goal (weight loss/muscle gain/maintenance): ")
 	data.Goal = c.readString()
 
-	resp, err := makeRequestTyped[server.ProfileResponseData](c, server.ReqCreateProfile, data)
+	_, err := makeRequest(c, server.ReqCreateProfile, data)
 	if err != nil {
 		fmt.Printf("Error creating profile: %s\n", err)
 		return
 	}
 
 	fmt.Println("\nProfile created successfully!")
-	c.displayProfile(*resp)
 }
 
 func (c *Client) displayProfile(profile server.ProfileResponseData) {

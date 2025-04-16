@@ -34,7 +34,7 @@ func main() {
 	requests := make(chan server.Request)
 
 	// Start server
-	srv := server.NewServer(sqliteDB, fdc.NewFoodProcessor(apiKey))
+	srv := server.NewServer(sqliteDB, fdc.NewFoodProcessor(apiKey), requests)
 	go srv.Start()
 
 	// Start client

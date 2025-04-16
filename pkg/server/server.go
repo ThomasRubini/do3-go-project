@@ -13,11 +13,11 @@ type Server struct {
 }
 
 // NewServer creates a new server instance
-func NewServer(userDB db.UserDatabase, foodProcessor *fdc.FoodProcessor) *Server {
+func NewServer(userDB db.UserDatabase, foodProcessor *fdc.FoodProcessor, requests chan Request) *Server {
 	return &Server{
 		userDB:        userDB,
 		foodProcessor: foodProcessor,
-		requests:      make(chan Request),
+		requests:      requests,
 	}
 }
 

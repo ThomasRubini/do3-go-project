@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func (s *Server) handleAddMeal(req Request) Response {
-	data, ok := req.Data.(AddMealData)
+func (s *Server) handleAddMeal(untypedData any) Response {
+	data, ok := untypedData.(AddMealData)
 	if !ok {
 		return Response{Error: fmt.Errorf("invalid request data")}
 	}
@@ -27,7 +27,7 @@ func (s *Server) handleAddMeal(req Request) Response {
 	return Response{}
 }
 
-func (s *Server) handleListMeals(req Request) Response {
+func (s *Server) handleListMeals(untypedData any) Response {
 	dailyLog := s.userDB.GetDailyLog(time.Now())
 	if dailyLog == nil {
 		return Response{Error: fmt.Errorf("no meals found")}

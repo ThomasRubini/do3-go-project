@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func (s *Server) handleGetReport(req Request) Response {
+func (s *Server) handleGetReport(untypedData any) Response {
 	dailyLog := s.userDB.GetDailyLog(time.Now())
 	var totals models.NutritionalTotals
 

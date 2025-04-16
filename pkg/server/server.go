@@ -41,24 +41,25 @@ func (s *Server) SendRequest(reqType string, data interface{}) Response {
 
 func (s *Server) handleRequest(req Request) {
 	var resp Response
+	data := req.Data
 
 	switch req.Type {
 	case ReqCreateProfile:
-		resp = s.handleCreateProfile(req)
+		resp = s.handleCreateProfile(data)
 	case ReqGetProfile:
-		resp = s.handleGetProfile(req)
+		resp = s.handleGetProfile(data)
 	case ReqUpdateProfile:
-		resp = s.handleUpdateProfile(req)
+		resp = s.handleUpdateProfile(data)
 	case ReqAddMeal:
-		resp = s.handleAddMeal(req)
+		resp = s.handleAddMeal(data)
 	case ReqListMeals:
-		resp = s.handleListMeals(req)
+		resp = s.handleListMeals(data)
 	case ReqSearchFood:
-		resp = s.handleSearchFood(req)
+		resp = s.handleSearchFood(data)
 	case ReqAddFood:
-		resp = s.handleAddFood(req)
+		resp = s.handleAddFood(data)
 	case ReqGetReport:
-		resp = s.handleGetReport(req)
+		resp = s.handleGetReport(data)
 	default:
 		resp = Response{Error: fmt.Errorf("unknown request type: %s", req.Type)}
 	}

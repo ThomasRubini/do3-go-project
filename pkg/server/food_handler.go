@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-func (s *Server) handleSearchFood(req Request) Response {
-	data, ok := req.Data.(SearchFoodData)
+func (s *Server) handleSearchFood(untypedData any) Response {
+	data, ok := untypedData.(SearchFoodData)
 	if !ok {
 		return Response{Error: fmt.Errorf("invalid request data")}
 	}
@@ -34,8 +34,8 @@ func (s *Server) handleSearchFood(req Request) Response {
 	}
 }
 
-func (s *Server) handleAddFood(req Request) Response {
-	data, ok := req.Data.(AddFoodData)
+func (s *Server) handleAddFood(untypedData any) Response {
+	data, ok := untypedData.(AddFoodData)
 	if !ok {
 		return Response{Error: fmt.Errorf("invalid request data")}
 	}

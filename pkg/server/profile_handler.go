@@ -5,8 +5,8 @@ import (
 	"nutritionapp/pkg/models"
 )
 
-func (s *Server) handleCreateProfile(req Request) Response {
-	data, ok := req.Data.(CreateProfileData)
+func (s *Server) handleCreateProfile(untypedData any) Response {
+	data, ok := untypedData.(CreateProfileData)
 	if !ok {
 		return Response{Error: fmt.Errorf("invalid request data")}
 	}
@@ -28,7 +28,7 @@ func (s *Server) handleCreateProfile(req Request) Response {
 	return Response{}
 }
 
-func (s *Server) handleGetProfile(req Request) Response {
+func (s *Server) handleGetProfile(untypedData any) Response {
 	user := s.userDB.GetUser()
 	if user == nil {
 		return Response{Error: fmt.Errorf("no profile exists")}
@@ -48,8 +48,8 @@ func (s *Server) handleGetProfile(req Request) Response {
 		},
 	}
 }
-func (s *Server) handleUpdateProfile(req Request) Response {
-	data, ok := req.Data.(UpdateProfileData)
+func (s *Server) handleUpdateProfile(untypedData any) Response {
+	data, ok := untypedData.(UpdateProfileData)
 	if !ok {
 		return Response{Error: fmt.Errorf("invalid request data")}
 	}

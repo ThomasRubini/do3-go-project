@@ -15,9 +15,7 @@ func (c *Client) handleProfile(args []string) {
 
 		c.displayProfile(*resp)
 		return
-	}
-
-	if args[0] == "create" {
+	} else if args[0] == "create" {
 		c.createProfile()
 	} else {
 		fmt.Println("Unknown profile command. Use 'help' for usage.")

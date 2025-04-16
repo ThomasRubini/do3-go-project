@@ -8,9 +8,15 @@ import (
 	"nutritionapp/pkg/fdc"
 	"nutritionapp/pkg/server"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if godotenv.Load() != nil {
+		log.Println("No .env file found")
+	}
+
 	// Get API key from environment
 	apiKey := os.Getenv("FDC_API_KEY")
 	if apiKey == "" {

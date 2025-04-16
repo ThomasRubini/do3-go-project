@@ -9,7 +9,11 @@ import (
 // Helper functions for reading input
 func (c *Client) readString() string {
 	var input string
-	fmt.Scanln(&input)
+	_, err := fmt.Scanln(&input)
+	if err != nil {
+		fmt.Printf("Error reading input: %v\n", err)
+		return ""
+	}
 	return strings.TrimSpace(input)
 }
 

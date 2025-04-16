@@ -11,4 +11,5 @@ Run: `docker run -e "FDC_API_KEY=YOUR_KEY_HERE" --rm -it do3-go-project:latest`
 
 # Authors
 Thomas RUBINI
+
 Hugo DU PELOUX
